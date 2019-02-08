@@ -7,7 +7,8 @@ import {
   Keyboard,
   SafeAreaView,
   StatusBar,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  Animated
 } from 'react-native';
 import * as Expo from 'expo';
 import PropTypes from 'prop-types';
@@ -48,7 +49,9 @@ export default class SearchScreen extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { results: [], text: null, showLogo: true };
+    this.state = { results: [], text: null };
+    this.visibility = new Animated.Value(1);
+    this.animationHasStarted = false; // TODO: rethink current solution
   }
 
   componentDidMount() {
@@ -81,19 +84,25 @@ export default class SearchScreen extends React.Component {
     fetch(url)
       .then(response => response.json())
       .then((data) => {
-        this.setState({ results: data.data, showLogo: false });
+        if (!this.animationHasStarted) {
+          this.animationHasStarted = true;
+          Animated.timing(this.visibility, {
+            toValue: 0,
+            duration: 400
+          }).start();
+        }
+
+        this.setState({ results: data.data });
       });
   };
 
   submitAndClear = () => {
-    this.setState({ text: '', showLogo: true });
+    this.setState({ text: '' });
     Keyboard.dismiss();
   };
 
   render() {
-    const {
-      isReady, showLogo, text, results
-    } = this.state;
+    const { isReady, text, results } = this.state;
     const { navigation } = this.props;
     if (!isReady) {
       return (
@@ -109,7 +118,17 @@ export default class SearchScreen extends React.Component {
         <StatusBar barStyle="light-content" />
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={styles.container}>
-            {showLogo && <Image style={styles.logo} source={LK_LOGO} />}
+            <Animated.View
+              style={{
+                height: this.visibility.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 260]
+                }),
+                opacity: this.visibility
+              }}
+            >
+              <Image style={styles.logo} source={LK_LOGO} />
+            </Animated.View>
 
             <View style={{ flex: 1, alignItems: 'center' }}>
               <View style={styles.searchContainer}>
@@ -134,7 +153,9 @@ export default class SearchScreen extends React.Component {
                 />
               )}
             </View>
-            {showLogo && <Credits screen="Search" />}
+            <Animated.View>
+              <Credits screen="Search" />
+            </Animated.View>
           </View>
         </TouchableWithoutFeedback>
       </SafeAreaView>
