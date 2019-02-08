@@ -105,7 +105,7 @@ export default class DetailsScreen extends React.Component {
           >
             <Expo.LinearGradient
               colors={['transparent', colours.primaryBlack]}
-              locations={[0.4, 1.2]}
+              locations={[0.4, 1]}
               style={styles.gradient}
             />
             <View
