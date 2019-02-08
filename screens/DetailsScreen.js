@@ -5,7 +5,8 @@ import {
   Image,
   View,
   ScrollView,
-  ImageBackground
+  ImageBackground,
+  Animated
 } from 'react-native';
 import * as Expo from 'expo';
 import PropTypes from 'prop-types';
@@ -31,6 +32,7 @@ export default class DetailsScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = { lyrics: null, /* err: null, */ isReady: null };
+    this.fadeIn = new Animated.Value(0.1);
   }
 
   async componentDidMount() {
@@ -49,6 +51,14 @@ export default class DetailsScreen extends React.Component {
     const lyricsQuery = `${artist.name}/${title}`;
     this.getLyrics(lyricsQuery);
   }
+
+  startFadeIn = () => {
+    Animated.timing(this.fadeIn, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true
+    }).start();
+  };
 
   getLyrics = async (lyricsQuery) => {
     try {
@@ -98,10 +108,11 @@ export default class DetailsScreen extends React.Component {
 
     return (
       <ScrollView style={styles.container}>
-        <View style={{ flex: 1 }}>
+        <Animated.View style={{ flex: 1, opacity: this.fadeIn }}>
           <ImageBackground
             source={{ uri: artist.picture_xl }}
             style={styles.backgroundImage}
+            onLoadEnd={this.startFadeIn}
           >
             <Expo.LinearGradient
               colors={['transparent', colours.primaryBlack]}
@@ -120,7 +131,7 @@ export default class DetailsScreen extends React.Component {
               <Text style={styles.songHeading}>{title}</Text>
             </View>
           </ImageBackground>
-        </View>
+        </Animated.View>
         <View style={{ flex: 1, paddingLeft: 19, paddingRight: 19 }}>
           <View
             style={{
